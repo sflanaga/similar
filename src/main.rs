@@ -67,11 +67,11 @@ fn str_to_sim_alg(s: &str) -> Result<StrCmpFn> {
 }
 
 //??? BUG in rust?
-fn alg_to_str(f: &fn(&str, &str) -> usize) -> &'static str {
+fn alg_to_str<'r, 's>(f: fn(&'r str, &'s str) -> usize) -> &'static str {
     match f {
-        &damerau_levenshtein => "damerau_levenshtein",
-        &osa_distance => "osa_distance",
-        &levenshtein => "levenshtein",
+        f if f == damerau_levenshtein => "damerau_levenshtein",
+        f if f == osa_distance => "osa_distance",
+        f if f == levenshtein => "levenshtein",
         _ => "uh",
     }
 }
@@ -132,7 +132,7 @@ fn main() {
     let search_vec = Arc::new(lines_from_file(&cfg.search_path));
 
     println!("Each of {} strings in file: \"{}\" find top matches from the {} strings found in file: \"{}\" using algorithm \"{}\"",
-    ref_vec.len(), &cfg.ref_path.to_str().unwrap(), search_vec.len(), &cfg.search_path.to_str().unwrap(), alg_to_str(&cfg.alg));
+    ref_vec.len(), &cfg.ref_path.to_str().unwrap(), search_vec.len(), &cfg.search_path.to_str().unwrap(), alg_to_str(cfg.alg));
     let empty = String::new();
     let results : Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(vec![empty;ref_vec.len()]));
 

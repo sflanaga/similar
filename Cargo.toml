@@ -15,6 +15,10 @@ opt-level = 3
 panic = 'abort'  # does cleanup upon panics
 trustflags = ["-C", "target-cpu=native"]
 
+[[bin]]
+name = "match_bug"
+path = "src/match_bug.rs"
+
 [dependencies]
 strsim = "0.10.0"
 structopt = "0.3.14"

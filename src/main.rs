@@ -1,14 +1,10 @@
-#![ allow( dead_code, unused_imports ) ]
-use threadpool::ThreadPool;
+use threadpool;
 use std::path::PathBuf;
 use structopt::StructOpt;
 use strsim::{damerau_levenshtein,osa_distance, levenshtein, };
 use crate::io::lines_from_file;
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
-use std::thread;
-use std::thread::{spawn, JoinHandle};
-use std::borrow::Borrow;
 use std::sync::{Arc, Mutex};
 use std::fmt::Debug;
 
@@ -66,7 +62,6 @@ fn str_to_sim_alg(s: &str) -> Result<StrCmpFn> {
     }
 }
 
-//??? BUG in rust?
 fn alg_to_str<'r, 's>(f: fn(&'r str, &'s str) -> usize) -> &'static str {
     match f {
         f if f == damerau_levenshtein => "damerau_levenshtein",
@@ -75,6 +70,16 @@ fn alg_to_str<'r, 's>(f: fn(&'r str, &'s str) -> usize) -> &'static str {
         _ => "uh",
     }
 }
+
+// only emmits a warning about unreachable but creates a bug
+// fn alg_to_str<'r, 's>(f: fn(&'r str, &'s str) -> usize) -> &'static str {
+//     match f {
+//         damerau_levenshtein => "damerau_levenshtein",
+//         osa_distance => "osa_distance",
+//         levenshtein => "levenshtein",
+//         _ => "uh",
+//     }
+// }
 
 impl Ord for TrackedString {
     fn cmp(&self, other: &TrackedString) -> Ordering {

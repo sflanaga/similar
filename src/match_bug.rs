@@ -1,4 +1,4 @@
-type fn_t = fn() -> ();
+type Afn = fn() -> ();
 
 fn fn1() -> () {
     println!("in fn1");
@@ -8,7 +8,7 @@ fn fn2() -> () {
     println!("in fn2");
 }
 
-fn str_to_fn(s: &str) -> fn_t {
+fn str_to_fn(s: &str) -> Afn {
     match s {
         "fn1" => fn1,
         "fn2" => fn2,
@@ -16,10 +16,10 @@ fn str_to_fn(s: &str) -> fn_t {
     }
 }
 
-fn fn_to_str(f: fn_t) -> & 'static str {
+fn fn_to_str(f: Afn) -> & 'static str {
     match f {
-        fn1 => "fn1",
-        fn2 => "fn2",
+        f if f == fn1 => "fn1",
+        f if f == fn2 => "fn2",
         _ => panic!("do not know that one"),
     }
 }

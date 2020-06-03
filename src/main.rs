@@ -2,7 +2,7 @@ use threadpool;
 use std::path::PathBuf;
 use structopt::StructOpt;
 use strsim::{damerau_levenshtein, osa_distance, levenshtein};
-use crate::io::lines_from_file;
+use crate::io::{lines_from_file, lines_from_file_alphanum_only};
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::sync::{Arc, Mutex};
@@ -50,6 +50,12 @@ pub struct CliCfg {
     #[structopt(short = "a", long = "str_simularity_algorithm", default_value = "damerau_levenshtein", parse(try_from_str = str_to_sim_alg))]
     // algorithm can be either damerau_levenshtein, osa_distance, or levenshtein
     alg: StrCmpFn,
+
+    #[structopt(short = "c", long = "alpha_num_chars_only")]
+    // algorithm can be either damerau_levenshtein, osa_distance, or levenshtein
+    alpha_num_chars_only: bool,
+
+
 }
 
 mod io;
@@ -160,19 +166,31 @@ fn main() -> Result<()> {
     //     "damerau_levenshtein" => damerau_levenshtein()| "osa_distance" | "osa_distance" =>
     // }
     // [algname] file1 file2
-    let ref_vec = Arc::new(lines_from_file(&cfg.reference_list_path));
+    let ref_vec = if !cfg.alpha_num_chars_only {
+        Arc::new(lines_from_file(&cfg.reference_list_path))
+    } else {
+        Arc::new(lines_from_file_alphanum_only(&cfg.reference_list_path))
+    };
     let search_vec = match cfg.search_vec_path {
         Some(search_file_path) => {
-            let search_vec = lines_from_file(&search_file_path);
+            let search_vec = if !cfg.alpha_num_chars_only {
+                lines_from_file(&search_file_path)
+            } else {
+                lines_from_file_alphanum_only(&search_file_path)
+            };
             println!("Each of {} strings in file: \"{}\" find top matches from reference list in file \"{}\" using algorithm \"{}\"",
                      search_vec.len(), search_file_path.to_str().unwrap(), search_file_path.to_str().unwrap(), alg_to_str(cfg.alg));
             Arc::new(search_vec)
         }
         None => {
             match cfg.search_vec {
-                Some(search_vec) => {
+                Some(mut search_vec) => {
+                    //let mut search_vec = search_vec.clone();
                     println!("Search strings: ");
-                    for s in search_vec.iter() {
+                    for s in search_vec.iter_mut() {
+                        if cfg.alpha_num_chars_only {
+                            s.retain(|c| c.is_alphanumeric());
+                        }
                         println!("\t{}", &s);
                     }
                     println!("Find top matches from reference list in file \"{}\" using algorithm \"{}\"",
